@@ -1,6 +1,5 @@
 from __future__ import print_function
 
-import builtins
 
 
 class VKNews:
@@ -12,7 +11,7 @@ class VKNews:
 
     def __str__(self):
         return "text: {0}\nnews_id: {1}\nphotos: {2}\nhref: {3}".format(self.text, self.news_id, str(self.photos),
-                                                                   str(self.href))
+                                                                        str(self.href))
 
     def __hash__(self):
         return hash(self.news_id)

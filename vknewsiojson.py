@@ -1,9 +1,10 @@
 import json
 import os
+import time
 
 import vknews
 from pathlib import Path
-
+from threading import Thread
 
 class VKNewsIOJSON:
 
@@ -18,7 +19,7 @@ class VKNewsIOJSON:
         with open(name, 'w', encoding='utf-8') as write_file:
             write_file.write('[')
 
-    def __write_elemnt_to_file(self, name, keys: list):
+    def __write_element_to_file(self, name, keys: list):
         is_new_file = False
         if not Path(name).is_file():
             self.__create_file(name)
@@ -36,9 +37,37 @@ class VKNewsIOJSON:
 
     def write_any_news_to_files(self, news: list):
         for i in news:
-            self.__write_elemnt_to_file(self.photos_filename, [i.news_id, i.photos])
-            self.__write_elemnt_to_file(self.text_filename, [i.news_id, i.text])
-            self.__write_elemnt_to_file(self.href_filename, [i.news_id, i.href])
+            self.__write_element_to_file(self.photos_filename, [i.news_id, i.photos])
+            self.__write_element_to_file(self.text_filename, [i.news_id, i.text])
+            self.__write_element_to_file(self.href_filename, [i.news_id, i.href])
+
+
+    def write_any_news_to_files_in_thread(self, news: list):
+        def f1():
+            for i in news:
+                self.__write_element_to_file(self.photos_filename, [i.news_id, i.photos])
+
+        variable1 = Thread(target=f1)
+
+        def f2():
+            for i in news:
+                self.__write_element_to_file(self.text_filename, [i.news_id, i.text])
+
+        variable2 = Thread(target=f2)
+
+        def f3():
+            for i in news:
+                self.__write_element_to_file(self.href_filename, [i.news_id, i.href])
+
+        variable3 = Thread(target=f3)
+
+        variable1.start()
+        variable2.start()
+        variable3.start()
+
+
+
+
 
     def __load_json_part_from_file(self, name):
         with open(name, 'r', encoding='utf-8') as read_file:
@@ -60,5 +89,13 @@ class VKNewsIOJSON:
             return []
 
     def write_unique_news_to_file(self, news: list):
-        self.write_any_news_to_files(list(set(news).difference(set(self.__loaded_news))))
-        self.__loaded_news += news.copy()
+        t = list(set(news).difference(set(self.__loaded_news)))
+        self.write_any_news_to_files(t.copy())
+        self.__loaded_news += t.copy()
+
+
+    def write_unique_news_to_file_in_thread(self, news: list):
+        t = list(set(news).difference(set(self.__loaded_news)))
+        self.write_any_news_to_files_in_thread(t.copy())
+        self.__loaded_news += t.copy()
+
