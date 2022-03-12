@@ -37,6 +37,6 @@ class InformationReceiver:
                         if 'link' in i2:
                             urls.append(i2['link']['url'])  # добавляем ссылку
 
-                    element = VKNews(i['text'], i['post_id'], photos, urls)  # 4 арг, ссылки.
+                    element = VKNews(i['text'], str(i['source_id'])+'_'+str(i['post_id']), photos, urls)  # 4 арг, ссылки.
                     news.append(element)
         return news
