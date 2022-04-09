@@ -1,35 +1,26 @@
 import threading
 
+import vknewsiojson
+
 
 class WatchdogThread(threading.Thread):
 
-    def __init__(self):
+    def __init__(self, vioj: vknewsiojson.VKNewsIOJSON):
         super().__init__()
+        self.__vioj = vioj
 
     def run(self):
-
-
-        import shutil
-        import os
-        src = '1.json'
-        dst = '11.json'
-        shutil.copyfile(src, dst)
-        with open(dst, 'r', encoding='utf-8') as write_file:
+        self.__vioj.first_file_mutex.acquire()
+        with open(vknewsiojson.photos_filename, 'r', encoding='utf-8') as write_file:
             print(write_file.read())
-        os.remove(dst)
-        src = '2.json'
-        dst = '22.json'
-        shutil.copyfile(src, dst)
-        with open(dst, 'r', encoding='utf-8') as write_file:
+        self.__vioj.first_file_mutex.release()
+
+        self.__vioj.second_file_mutex.acquire()
+        with open(vknewsiojson.text_filename, 'r', encoding='utf-8') as write_file:
             print(write_file.read())
-        os.remove(dst)
+        self.__vioj.second_file_mutex.release()
 
-        src = '3.json'
-        dst = '33.json'
-        shutil.copyfile(src, dst)
-        with open(dst, 'r', encoding='utf-8') as write_file:
+        self.__vioj.third_file_mutex.acquire()
+        with open(vknewsiojson.href_filename, 'r', encoding='utf-8') as write_file:
             print(write_file.read())
-        os.remove(dst)
-
-
-
+        self.__vioj.third_file_mutex.release()
