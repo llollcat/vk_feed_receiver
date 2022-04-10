@@ -1,6 +1,3 @@
-from __future__ import print_function
-
-
 class VKNews:
     def __init__(self, text: str, news_id: str, photos: list, href: list):
         self.text = text

@@ -1,3 +1,5 @@
-process2_rf1="process2_readed_file1"
-process2_rf2="process2_readed_file2"
-process2_rf3="process2_readed_file3"
+process_shm_name = "can_take_ctrl"
+process1_alive_indicator = "process1_alive_indicator"
+process2_alive_indicator = "process2_alive_indicator"
+
+logfile='log/log{}'
