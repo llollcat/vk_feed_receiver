@@ -1,3 +1,4 @@
+import logging
 import threading
 
 import vknewsiojson
@@ -24,3 +25,4 @@ class WatchdogThread(threading.Thread):
         with open(vknewsiojson.href_filename, 'r', encoding='utf-8') as write_file:
             print(write_file.read())
         self.__vioj.third_file_mutex.release()
+        logging.info("watchdog thread ended")

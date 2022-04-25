@@ -1,3 +1,5 @@
+import logging
+
 from vknews import *
 import vk_api
 
@@ -20,6 +22,7 @@ class InformationReceiver:
                                   captcha_handler=self.__captcha_handler)
 
         self.vk = vk_session.get_api()
+        logging.info("singed in vk")
 
     def get_news(self) -> list:
         response = self.vk.newsfeed.get(filters='post')
@@ -39,4 +42,5 @@ class InformationReceiver:
 
                     element = VKNews(i['text'], str(i['source_id'])+'_'+str(i['post_id']), photos, urls)  # 4 арг, ссылки.
                     news.append(element)
+        logging.info("news gotten")
         return news

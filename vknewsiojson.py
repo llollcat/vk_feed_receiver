@@ -1,4 +1,5 @@
 import json
+import logging
 import os
 import threading
 
@@ -61,8 +62,6 @@ class VKNewsIOJSON:
 
     def write_any_news_to_files_in_thread(self, news: list):
 
-
-
         def f1():
             self.second_file_mutex.acquire()
 
@@ -82,7 +81,6 @@ class VKNewsIOJSON:
 
         thread2 = Thread(target=f2)
 
-
         def f3():
             self.third_file_mutex.acquire()
 
@@ -95,6 +93,7 @@ class VKNewsIOJSON:
         thread1.start()
         thread2.start()
         thread3.start()
+        logging.info("write news in thread  to files started")
 
     def write_unique_news_to_file_in_thread(self, news: list):
         self.mutex_on_calculation.acquire()

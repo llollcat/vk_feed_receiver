@@ -1,5 +1,6 @@
 import json
 import time
+from multiprocessing import shared_memory
 
 import NAMES
 import indicator
@@ -7,8 +8,9 @@ import vknews
 import vknewsiojson
 import threading
 
-from logging import Logger
-from multiprocessing import shared_memory
+import logging
+
+logging.basicConfig(filename=NAMES.process2_logfile.format(time.time()), level=logging.INFO)
 
 f1, f2, f3 = (None for i in range(3))
 shm_lock = None
@@ -21,28 +23,15 @@ except FileExistsError:
 ind = indicator.Indicator()
 
 
-def read_file1():
-    global f1
-
-    name = vknewsiojson.text_filename
-    with open(name, 'r', encoding='utf-8') as read_file:
-        f1 = json.load(read_file)
 
 
-def read_file2():
-    global f2
 
-    name = vknewsiojson.photos_filename
-    with open(name, 'r', encoding='utf-8') as read_file:
-        f2 = json.load(read_file)
-
-
-def read_file3():
-    global f3
-
-    name = vknewsiojson.href_filename
-    with open(name, 'r', encoding='utf-8') as read_file:
-        f3 = json.load(read_file)
+def read_file(filename, var):
+    try:
+        with open(filename, 'r', encoding='utf-8') as read_file:
+            globals()[var] = json.load(read_file)
+    except FileNotFoundError:
+        pass
 
 
 def do_cycle():
@@ -55,16 +44,17 @@ def do_cycle():
 
         shm_lock.buf[0] = 0
         try:
-            t1 = threading.Thread(target=read_file1)
+            t1 = threading.Thread(target=read_file, args=[vknewsiojson.text_filename, 'f1'])
             t1.start()
-            t2 = threading.Thread(target=read_file2)
+            t2 = threading.Thread(target=read_file, args=[vknewsiojson.photos_filename, 'f2'])
             t2.start()
-            t3 = threading.Thread(target=read_file3)
+            t3 = threading.Thread(target=read_file, args=[vknewsiojson.href_filename, 'f3'])
             t3.start()
 
             t1.join()
             t2.join()
             t3.join()
+
         except FileNotFoundError:
             pass
         import sqlite3 as sql
@@ -77,11 +67,14 @@ def do_cycle():
             cur.execute("CREATE TABLE IF NOT EXISTS `table2` (`id` STRING, `text` STRING, PRIMARY KEY(`id`, `text`))")
             cur.execute("CREATE TABLE IF NOT EXISTS `table3` (`id` STRING, `href` STRING, PRIMARY KEY(`id`, `href`))")
 
+            if f1 == None or f2 == None or f3 == None:
+                continue
+
             news = list()
             for i1, i2, i3 in zip(f1, f2, f3):
                 t = vknews.VKNews(i1[1], i1[0], i2[1], i3[1])
                 news.append(t)
-
+            print(news[-1])
             for i in news:
                 for photo in i.photos:
                     cur.execute(f"INSERT OR IGNORE INTO `table1` VALUES (?, ?)", [i.news_id, photo])

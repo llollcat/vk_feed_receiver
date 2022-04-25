@@ -1,7 +1,5 @@
-import datetime
 import threading
 import time
-import tkinter as tk
 from multiprocessing import shared_memory
 
 import NAMES
@@ -13,8 +11,7 @@ import watchdogthread
 
 import logging
 
-logging.basicConfig(filename=NAMES.logfile.format(time.time()),
-                    level=logging.INFO)
+logging.basicConfig(filename=NAMES.process1_logfile.format(time.time()), level=logging.INFO)
 
 io = vknewsiojson.VKNewsIOJSON()
 
@@ -27,6 +24,7 @@ def to_json():
 
 
 def do_cycle():
+    counter = 0
     ind = indicator.Indicator()
     threading.Thread(target=ind.indicate, args=[NAMES.process1_alive_indicator]).start()
 
@@ -34,32 +32,32 @@ def do_cycle():
     t = threading.Thread(target=ind.wait_for_process, args=[NAMES.process2_alive_indicator])
     t.start()
     t.join()
-
     threading.Thread(target=ind.second_process_checker, args=[NAMES.process2_alive_indicator]).start()
 
-    shm_lock = None
+    # получение псевдо локера
     try:
         shm_lock = shared_memory.SharedMemory(NAMES.process_shm_name, create=True, size=1)
         shm_lock.buf[0] = 1
     except FileExistsError:
+        logging.info("locker already exited")
         shm_lock = shared_memory.SharedMemory(NAMES.process_shm_name, create=False)
 
     while True:
         to_json()
+
         while shm_lock.buf[0] != 1 and not ind.is_second_process_dead:
             pass
+
         shm_lock.buf[0] = 0
         wd_thread = watchdogthread.WatchdogThread(io)
         wd_thread.start()
         wd_thread.join()
         shm_lock.buf[0] = 1
+
+        counter += 1
+        logging.info(f"cycle {counter} ended successfully")
         time.sleep(1)
 
 
 logging.info("do_cycle started")
 do_cycle()
-
-# GUI
-# window = tk.Tk()
-# tk.Button(text="json", width=25, height=5, bg="pink", fg="yellow", command=to_json).pack()
-# window.mainloop()
